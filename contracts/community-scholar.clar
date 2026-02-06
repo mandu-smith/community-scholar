@@ -119,3 +119,54 @@
     (asserts! (validate-selected-major selected-major) ERROR_INVALID_INPUT)
     (asserts! (validate-current-year current-year) ERROR_INVALID_INPUT)
     (asserts! (validate-requested-amount requested-amount) ERROR_INVALID_INPUT)
+
+    ;; Return validated data structure
+    (ok {
+      applicant-name: applicant-name,
+      grade-point-average: grade-point-average,
+      selected-major: selected-major,
+      current-year: current-year,
+      requested-amount: requested-amount,
+    })
+  )
+)
+
+(define-private (validate-principal (address principal))
+  (match (principal-destruct? address)
+    success true
+    error false
+  )
+)
+
+(define-public (submit-scholarship-application
+    (applicant-name (string-ascii 50))
+    (grade-point-average uint)
+    (selected-major (string-ascii 50))
+    (current-year uint)
+    (requested-amount uint)
+  )
+  (let ((existing-application (map-get? ScholarshipApplications tx-sender)))
+    (if (is-some existing-application)
+      ERROR_APPLICATION_EXISTS
+      (if (> stacks-block-height (var-get application-submission-deadline))
+        ERROR_APPLICATION_PERIOD_CLOSED
+        (match (validate-and-sanitize-application applicant-name grade-point-average
+          selected-major current-year requested-amount
+        )
+          validated-data (begin
+            (map-set ScholarshipApplications tx-sender {
+              applicant-full-name: (get applicant-name validated-data),
+              academic-performance: (get grade-point-average validated-data),
+              field-of-study: (get selected-major validated-data),
+              academic-year: (get current-year validated-data),
+              requested-scholarship-amount: (get requested-amount validated-data),
+              application-status: "PENDING",
+            })
+            (ok true)
+          )
+          error ERROR_INVALID_INPUT
+        )
+      )
+    )
+  )
+)
