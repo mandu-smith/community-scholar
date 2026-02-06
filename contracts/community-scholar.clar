@@ -170,3 +170,40 @@
     )
   )
 )
+
+(define-public (evaluate-scholarship-application
+    (applicant-address principal)
+    (is-approved bool)
+  )
+  (begin
+    (asserts! (is-administrator) ERROR_UNAUTHORIZED_ACCESS)
+    (asserts! (validate-principal applicant-address) ERROR_INVALID_INPUT)
+    (match (map-get? ScholarshipApplications applicant-address)
+      current-application (begin
+        (map-set ScholarshipApplications applicant-address
+          (merge current-application { application-status: (if is-approved
+            "APPROVED"
+            "REJECTED"
+          ) }
+          ))
+        (if is-approved
+          (map-set ScholarshipRecipients applicant-address {
+            recipient-status: "ACTIVE",
+            scholarship-amount: (get requested-scholarship-amount current-application),
+            academic-performance: (get academic-performance current-application),
+            field-of-study: (get field-of-study current-application),
+            academic-year: (get academic-year current-application),
+          })
+          true
+        )
+        (ok true)
+      )
+      (err u404)
+    )
+  )
+)
+
+;; Read-Only Functions
+(define-read-only (get-scholarship-fund-balance)
+  (ok (var-get scholarship-pool-balance))
+)
