@@ -207,3 +207,34 @@
 (define-read-only (get-scholarship-fund-balance)
   (ok (var-get scholarship-pool-balance))
 )
+
+(define-read-only (get-donor-details (donor-address principal))
+  (ok (map-get? DonorRegistry donor-address))
+)
+
+(define-read-only (get-application-details (applicant-address principal))
+  (ok (map-get? ScholarshipApplications applicant-address))
+)
+
+(define-read-only (get-recipient-details (recipient-address principal))
+  (ok (map-get? ScholarshipRecipients recipient-address))
+)
+
+;; Administrative Functions
+(define-public (update-application-deadline (new-deadline-block uint))
+  (begin
+    (asserts! (is-administrator) ERROR_UNAUTHORIZED_ACCESS)
+    (asserts! (> new-deadline-block stacks-block-height) ERROR_INVALID_INPUT)
+    (var-set application-submission-deadline new-deadline-block)
+    (ok true)
+  )
+)
+
+(define-public (update-disbursement-period (new-disbursement-block uint))
+  (begin
+    (asserts! (is-administrator) ERROR_UNAUTHORIZED_ACCESS)
+    (asserts! (> new-disbursement-block stacks-block-height) ERROR_INVALID_INPUT)
+    (var-set scholarship-disbursement-period new-disbursement-block)
+    (ok true)
+  )
+)
