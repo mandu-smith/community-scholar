@@ -82,3 +82,40 @@
     })
   )
 )
+
+(define-private (validate-applicant-name (name (string-ascii 50)))
+  (and (>= (len name) u1) (<= (len name) u50))
+)
+
+(define-private (validate-grade-point-average (gpa uint))
+  (<= gpa MAXIMUM_GPA)
+)
+
+(define-private (validate-selected-major (major (string-ascii 50)))
+  (and (>= (len major) u1) (<= (len major) u50))
+)
+
+(define-private (validate-current-year (year uint))
+  (and (>= year u1) (<= year MAXIMUM_ACADEMIC_YEAR))
+)
+
+(define-private (validate-requested-amount (amount uint))
+  (<= amount MAXIMUM_SCHOLARSHIP_AMOUNT)
+)
+
+(define-private (validate-and-sanitize-application
+    (applicant-name (string-ascii 50))
+    (grade-point-average uint)
+    (selected-major (string-ascii 50))
+    (current-year uint)
+    (requested-amount uint)
+  )
+  (begin
+    ;; Perform all validations first
+    (asserts! (validate-applicant-name applicant-name) ERROR_INVALID_INPUT)
+    (asserts! (validate-grade-point-average grade-point-average)
+      ERROR_INVALID_INPUT
+    )
+    (asserts! (validate-selected-major selected-major) ERROR_INVALID_INPUT)
+    (asserts! (validate-current-year current-year) ERROR_INVALID_INPUT)
+    (asserts! (validate-requested-amount requested-amount) ERROR_INVALID_INPUT)
