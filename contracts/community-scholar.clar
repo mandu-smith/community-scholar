@@ -33,3 +33,52 @@
     most-recent-donation-block: uint,
   }
 )
+
+(define-map ScholarshipRecipients
+  principal
+  {
+    recipient-status: (string-ascii 20),
+    scholarship-amount: uint,
+    academic-performance: uint,
+    field-of-study: (string-ascii 50),
+    academic-year: uint,
+  }
+)
+
+(define-map ScholarshipApplications
+  principal
+  {
+    applicant-full-name: (string-ascii 50),
+    academic-performance: uint,
+    field-of-study: (string-ascii 50),
+    academic-year: uint,
+    requested-scholarship-amount: uint,
+    application-status: (string-ascii 20),
+  }
+)
+
+;; Private Functions
+(define-private (is-administrator)
+  (is-eq tx-sender CONTRACT_ADMINISTRATOR)
+)
+
+(define-private (validate-donation-amount (donation-amount uint))
+  (>= donation-amount MINIMUM_DONATION_AMOUNT)
+)
+
+(define-private (update-donor-records
+    (donor-address principal)
+    (donation-amount uint)
+  )
+  (let ((current-donor-info (default-to {
+      cumulative-donation-amount: u0,
+      most-recent-donation-block: u0,
+    }
+      (map-get? DonorRegistry donor-address)
+    )))
+    (map-set DonorRegistry donor-address {
+      cumulative-donation-amount: (+ (get cumulative-donation-amount current-donor-info) donation-amount),
+      most-recent-donation-block: stacks-block-height,
+    })
+  )
+)
